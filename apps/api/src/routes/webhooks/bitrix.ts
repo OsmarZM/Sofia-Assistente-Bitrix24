@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '@sofia/db'
+import { safeEqual, logAuditBackground } from '@sofia/shared'
 import { bitrixMessageQueue } from '../../queues.js'
 import type { BitrixWebhookEvent } from '@sofia/bitrix'
 
@@ -22,8 +23,15 @@ export async function bitrixWebhookRoute(app: FastifyInstance) {
   app.post<{ Body: BitrixWebhookEvent }>('/bitrix', async (request, reply) => {
     const body = request.body
 
-    // Valida token outgoing se configurado
-    if (OUTGOING_TOKEN && body.auth?.application_token !== OUTGOING_TOKEN) {
+    // Valida token outgoing em tempo constante (anti-timing attack)
+    const receivedToken = body.auth?.application_token ?? ''
+    if (OUTGOING_TOKEN && !safeEqual(receivedToken, OUTGOING_TOKEN)) {
+      logAuditBackground({
+        actor: 'system',
+        action: 'webhook_auth_failure',
+        entity: 'bitrix_events',
+        after: { ip: request.ip, token_prefix: receivedToken.slice(0, 4) },
+      })
       return reply.code(401).send({ error: 'Unauthorized' })
     }
 

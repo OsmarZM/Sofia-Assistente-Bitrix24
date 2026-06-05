@@ -32,7 +32,7 @@ BEGIN
   JOIN knowledge_documents kd ON kd.id = kc.document_id
   WHERE
     kd.status = 'processed'
-    AND (p_category_id IS NULL OR kd.category_id = p_category_id)
+    AND (p_category_id IS NULL OR kc.category_id = p_category_id)
     AND (1 - (kc.embedding <=> query_embedding)) >= match_threshold
   ORDER BY kc.embedding <=> query_embedding
   LIMIT match_count;
