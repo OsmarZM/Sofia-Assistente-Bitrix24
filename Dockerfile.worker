@@ -1,0 +1,44 @@
+# ── Stage 1: deps ─────────────────────────────────────────────────────────────
+FROM node:20-alpine AS deps
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY packages/db/package.json packages/db/
+COPY packages/ai-providers/package.json packages/ai-providers/
+COPY packages/rag/package.json packages/rag/
+COPY packages/bitrix/package.json packages/bitrix/
+COPY packages/ingestion/package.json packages/ingestion/
+COPY packages/shared/package.json packages/shared/
+COPY apps/worker/package.json apps/worker/
+RUN pnpm install --frozen-lockfile --filter @sofia/worker...
+
+# ── Stage 2: build ─────────────────────────────────────────────────────────────
+FROM deps AS builder
+COPY packages/ packages/
+COPY apps/worker/ apps/worker/
+COPY tsconfig.base.json ./
+RUN pnpm --filter @sofia/worker... run build
+
+# ── Stage 3: runner ────────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/db/package.json ./packages/db/package.json
+COPY --from=builder /app/packages/ai-providers/dist ./packages/ai-providers/dist
+COPY --from=builder /app/packages/ai-providers/package.json ./packages/ai-providers/package.json
+COPY --from=builder /app/packages/rag/dist ./packages/rag/dist
+COPY --from=builder /app/packages/rag/package.json ./packages/rag/package.json
+COPY --from=builder /app/packages/bitrix/dist ./packages/bitrix/dist
+COPY --from=builder /app/packages/bitrix/package.json ./packages/bitrix/package.json
+COPY --from=builder /app/packages/ingestion/dist ./packages/ingestion/dist
+COPY --from=builder /app/packages/ingestion/package.json ./packages/ingestion/package.json
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=builder /app/apps/worker/dist ./apps/worker/dist
+COPY --from=builder /app/apps/worker/package.json ./apps/worker/package.json
+
+CMD ["node", "apps/worker/dist/index.js"]

@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Lint-staged: lint + format + regen-docs if migrations changed
+pnpm lint-staged
+
+# Commitlint
+pnpm commitlint --edit "$1"

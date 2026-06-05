@@ -1,0 +1,8 @@
+export { chunkText, chunkPages, estimateTokens } from './chunker.js'
+export type { Chunk, ChunkOptions } from './chunker.js'
+export { retrieve, embedAndRetrieve } from './retriever.js'
+export type { RetrievedChunk, RetrieveOptions } from './retriever.js'
+export { buildPrompt, DEGRADED_RESPONSE, LOW_CONFIDENCE_RESPONSE } from './prompt.js'
+export type { SofiaContext, BuiltPrompt } from './prompt.js'
+export { isConfident, calculateConfidence, getThreshold, recalibrateThreshold } from './confidence.js'
+export { getCachedResponse, setCachedResponse } from './cache.js'

@@ -1,0 +1,30 @@
+{
+  "name": "@sofia/rag",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./chunker": "./src/chunker.ts",
+    "./retriever": "./src/retriever.ts",
+    "./prompt": "./src/prompt.ts",
+    "./confidence": "./src/confidence.ts",
+    "./cache": "./src/cache.ts",
+    "./embedder": "./src/embedder.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sofia/db": "workspace:*",
+    "@sofia/ai-providers": "workspace:*",
+    "@sofia/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.2",
+    "vitest": "^1.6.0"
+  }
+}
